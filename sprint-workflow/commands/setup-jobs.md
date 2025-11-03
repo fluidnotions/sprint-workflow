@@ -27,25 +27,57 @@ Example: 10 todos from a sprint plan might become 3 jobs:
 
 Each job gets its own git worktree for parallel development.
 
-## Step 1: Read Todo List
+## Step 1: Read Sprint Artifacts
 
-Load todos from file or find most recent:
+Load both the todo list AND the Sprint PRD for complete context:
+
+**Todo List:**
 ```bash
 ls -t *_todos.md | head -1
 ```
 
-## Step 2: Analyze Code Co-location
+**Sprint PRD:**
+```bash
+PROJECT_NAME=$(basename "$PWD")
+ls -t thoughts/sprint-plans/$PROJECT_NAME/*_prd_*.md | head -1
+```
 
-Group todos by where code changes cluster:
-- Database migrations together
-- API endpoints together  
-- Frontend components together
-- Configuration changes together
-- Documentation updates together
+**Why both?**
+- **Todos**: Task checklist (what needs to be done)
+- **Sprint PRD**: Architecture, acceptance criteria, user stories, technical approach (how and why)
+
+The job-creator agent needs BOTH to create well-defined job specifications that implementation agents can execute without ambiguity.
+
+## Step 2: Invoke Job Creator Agent
+
+Use the job-creator agent to analyze code co-location and group todos into jobs:
+
+```
+Task: job-creator
+Input:
+  - Todo list: {todos_file}
+  - Sprint PRD: {prd_file}
+
+Analyze:
+  - Which todos modify the same codebase areas?
+  - What's the natural grouping by code co-location?
+  - Database migrations together
+  - API endpoints together
+  - Frontend components together
+  - Configuration changes together
+
+Output: Job groupings with specifications
+```
+
+The agent will use the Sprint PRD to understand:
+- Architecture and technical approach
+- Acceptance criteria for each feature
+- Dependencies between components
+- Risk areas and complexity
 
 ## Step 3: Create Job Specifications
 
-For each job group, create task file:
+For each job group, the job-creator agent generates a task file:
 `tasks/{datetime}_{type}_{groupname}.md`
 
 ```markdown
@@ -100,18 +132,45 @@ cp ../../.env .env 2>/dev/null || true
 echo "Worktree ready at worktrees/$BRANCH_NAME"
 ```
 
-## Step 5: Architecture Review
+## Step 5: Architecture Review & Feedback Loop
 
-Before starting implementation, run gap-analyzer on each job:
+Before starting implementation, run gap-analyzer on each job specification:
 
 ```
 Task: gap-analyzer
-Review job plan: tasks/{datetime}_{type}_{groupname}.md
-Validate: architecture, libraries, patterns
-Output: recommendations or approval
+Input:
+  - Job specification: tasks/{datetime}_{type}_{groupname}.md
+  - Sprint PRD: {prd_file} (for context)
+
+Validate:
+  - Architecture patterns and best practices
+  - Security considerations
+  - Missing components or edge cases
+  - Complexity assessment (story points)
+
+Output: Gap analysis report with recommendations
 ```
 
-Present findings and get user approval for any changes.
+**Critical Feedback Loop:**
+
+1. **If gap-analyzer finds issues:**
+   - Present findings to user
+   - Ask: "Apply recommended changes to job specification? (yes/no/customize)"
+
+2. **If yes:** Update the job specification file with:
+   - Additional todos for missing components
+   - Architectural improvements
+   - Security hardening steps
+   - Updated story point estimate
+
+3. **Document changes:**
+   - Add "Gap Analysis Updates" section to job spec
+   - List what was added/changed and why
+   - Update story point total
+
+4. **Re-validate:** Optionally run gap-analyzer again on updated spec
+
+This ensures job specifications are comprehensive BEFORE implementation begins.
 
 ## Step 6: Launch Parallel Implementation
 
@@ -202,10 +261,21 @@ Spawn test-automator agents:
 
 ```
 [create-sprint] → [setup-jobs] → [parallel implementation] → [verify_implementation]
+   (Sprint PRD)       ↓               ↓
+   (Todos)      [job-creator]   [implementation]
+                      ↓               ↓
+                [gap-analyzer]   [per worktree]
                       ↓
-              [job-creator agent]
-              [gap-analyzer agent]
-              [implementation agents]
+                [feedback loop]
+                      ↓
+             [updated job specs]
 ```
 
-This command orchestrates the entire sprint execution with parallel development.
+**setup-jobs agents:**
+- job-creator: Groups todos into code-colocated jobs using Sprint PRD context
+- gap-analyzer: Validates job specs and provides feedback for improvements
+
+**Next step (parallel implementation):**
+- Implementation agents work in separate worktrees
+- Each agent executes ONE job specification
+- NOT part of setup-jobs command

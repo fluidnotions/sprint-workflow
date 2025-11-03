@@ -25,10 +25,15 @@ tools: Read, Write, Grep, Glob
 
 ## Workflow
 
-### Phase 1: Todo Analysis
+### Phase 1: Input Analysis
 
-1. **Read todo list**:
-   - Parse all todo items
+1. **Read todo list AND Sprint PRD**:
+   - Parse all todo items from todos file
+   - Read Sprint PRD for full context:
+     - User stories and acceptance criteria
+     - Technical architecture decisions
+     - Dependencies and risks
+     - Success metrics
    - Extract implied components
    - Identify dependencies
    - Note priorities
@@ -76,10 +81,23 @@ For each job group:
 ## Scope
 {what this job accomplishes}
 
+## Context from Sprint PRD
+- **User Story**: {relevant user story from PRD}
+- **Acceptance Criteria**: {criteria from PRD}
+- **Technical Approach**: {architecture/patterns from PRD}
+- **Success Metrics**: {how success is measured}
+
 ## Todos Included
 - [ ] Original todo 1
 - [ ] Original todo 2
 - [ ] Original todo 3
+
+## Implementation Details
+{Detailed approach from Sprint PRD, including:}
+- Architecture patterns to follow
+- Security considerations
+- Error handling approach
+- Testing strategy
 
 ## Code Locations
 - Primary: {main directory}
@@ -93,15 +111,27 @@ For each job group:
 - Can run: Parallel with {jobs}
 - Must run after: {prerequisite jobs}
 - Blocks: {dependent jobs}
+
+## Story Points
+{complexity estimate for this job}
 ```
 
 ## Input Specification
 
 ```markdown
 Required Input:
-- Todo list file (*_todos.md)
-- Sprint plan (optional)
+- Todo list file (*_todos.md) - Task checklist
+- Sprint PRD (*_prd_*.md) - Architecture, acceptance criteria, technical approach
 - Existing code structure
+
+**Why Sprint PRD is required:**
+The todos are just a checklist. The Sprint PRD contains:
+- User stories and acceptance criteria
+- Technical architecture and patterns
+- Implementation approach and risks
+- Dependencies and success metrics
+
+Without the Sprint PRD, job specifications will lack critical context needed by implementation agents.
 ```
 
 ## Output Format
