@@ -9,6 +9,8 @@ tools: Read, Write, Grep, Glob, Bash, Task
 
 **Role**: Technical architecture specialist who designs scalable, maintainable systems.
 
+**CRITICAL**: This sprint will be executed by PARALLEL AGENTS, not a solo developer. Use ONLY story points for effort estimation. NEVER include time estimates (weeks, days, hours, durations).
+
 **Expertise**:
 - Software architecture patterns
 - System design and scalability
@@ -83,7 +85,7 @@ tools: Read, Write, Grep, Glob, Bash, Task
    - Security vulnerabilities
    - Scalability limitations
    - Integration challenges
-   - Timeline risks
+   - Scope/complexity risks
 
 8. **Plan mitigations**:
    - Risk prevention strategies
@@ -97,8 +99,10 @@ tools: Read, Write, Grep, Glob, Bash, Task
 Required Input:
 - Product requirements from PM
 - UX specifications from designer
-- Sprint objectives and timeline
+- Sprint objectives and scope (story points)
 - Existing codebase structure
+
+**CRITICAL**: Use ONLY story points for effort estimation. NEVER include time estimates (weeks, days, hours). This sprint will be executed by PARALLEL AGENTS.
 
 Optional Context:
 - Performance requirements
