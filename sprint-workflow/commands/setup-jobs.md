@@ -172,43 +172,49 @@ Output: Gap analysis report with recommendations
 
 This ensures job specifications are comprehensive BEFORE implementation begins.
 
-## Step 6: Launch Parallel Implementation
+## Step 6: Launch Sprint Coordinator
 
-**Note**: Parallel agent execution is conceptual in this workflow. Actual implementation depends on your Claude Code setup.
+Spawn the sprint-coordinator agent to orchestrate parallel execution:
 
-For manual execution:
-```bash
-# For each job, switch to its worktree and begin implementation
-for job in jobs; do
-  WORKTREE="worktrees/feat-${job}"
-  echo "Ready to implement: $job in $WORKTREE"
-  echo "Run: cd $WORKTREE && /implement_plan tasks/{datetime}_{type}_{job}.md"
-done
+```
+Task: sprint-coordinator
+Input:
+  - Job specifications: tasks/*.md
+  - Sprint PRD: {prd_file}
+  - Worktrees: worktrees/feat-*/
+  - Agent pool size: {pool_size}
+
+The coordinator will autonomously:
+
+1. Parallel Implementation
+   - Spawn implementation-agent for each job (parallel)
+   - Monitor progress in sprint_status.md
+
+2. Verification Feedback Loops (automatic)
+   - When job completes → spawn verification-agent
+   - If verification fails → spawn implementation-agent with feedback
+   - Loop until verified OR max 5 iterations
+   - Failed jobs logged to sprint_errors_*.md (sprint continues)
+
+3. Branch Management (multi-repo aware, parallel)
+   - Update branches from main
+   - Auto-resolve conflicts where possible
+   - Run tests before merging
+
+4. Push/PR/Merge Strategy
+   - IF repo has remote: push + create PR + auto-merge (if tests pass)
+   - IF repo local only: merge to main locally
+   - Cleanup merged worktrees
+
+5. Error Handling (non-blocking)
+   - Failed jobs logged, user notified
+   - Sprint continues regardless of individual failures
+   - Final report shows successes and failures
+
+Monitor progress: /sprint-status (updates every 60 seconds)
 ```
 
-For automated execution (if configured):
-- Each agent receives its task specification
-- Agents work independently in separate worktrees
-- Progress tracked in sprint_status.md
-- Use `/sprint-status` to monitor overall progress
-
-## Step 7: Progress Tracking
-
-Create sprint dashboard at `sprint_status.md`:
-
-```markdown
-# Sprint Status
-
-## Jobs
-- [>] auth-system (in progress - worktree: feat/auth-system)
-- [ ] api-endpoints (queued)
-- [ ] frontend-dashboard (queued)
-
-## Progress
-- Started: {timestamp}
-- Agents active: 3
-- Estimated completion: {estimate}
-```
+**Note**: The coordinator runs autonomously. You can monitor with `/sprint-status` or review error reports in `sprint_errors_*.md` for any failed jobs.
 
 ## Output
 
@@ -218,64 +224,50 @@ Job Setup Complete!
 📊 Jobs Created: {count}
 🌳 Worktrees Set Up: {list}
 ✅ Architecture Validated
-🤖 Agent Pool Size: {pool}
+🤖 Sprint Coordinator: Launched
 
-Starting parallel implementation...
+🚀 Parallel implementation started!
 
-Next steps:
-- Monitor progress with `/sprint-status`
-- After completion: Use `/verify_implementation` for each completed task
-- For PR creation: Use `/describe_pr` for each task branch
+The sprint-coordinator is now running autonomously:
+- Implementation agents spawned (parallel)
+- Verification loops active (automatic)
+- Progress tracked in sprint_status.md
+
+Monitor:
+- Real-time: `/sprint-status`
+- Errors: sprint_errors_*.md
+- Final report: Generated when all jobs complete
+
+After sprint:
+- Review final report from sprint-coordinator
+- Check sprint_errors_*.md for any failed jobs
+- Run `/sprint-retrospective` to document learnings
 ```
-
-## Post-Implementation (Step 8-11)
-
-After all jobs complete:
-
-### Step 8: Merge and Create PRs
-- Pull origin/main into each worktree
-- Resolve any conflicts
-- Push branches to origin
-- Create GitHub PRs with traceability
-
-### Step 9: Sprint Retrospective
-Generate `{datetime}_sprint_retro.md`:
-- Tasks completed vs planned
-- Story points estimated vs actual complexity
-- Issues encountered
-- Improvements for next sprint
-
-### Step 10: Unit Test Generation
-Spawn test-automator agents:
-- Create comprehensive test suites
-- Achieve 80%+ coverage on critical paths
-- Run tests until all pass
-
-### Step 11: Final Validation
-- All tests passing
-- Documentation complete
-- PRs merged to main
-- Retrospective documented
 
 ## Relationship to Workflow
 
 ```
-[create-sprint] → [setup-jobs] → [parallel implementation] → [verify_implementation]
-   (Sprint PRD)       ↓               ↓
-   (Todos)      [job-creator]   [implementation]
-                      ↓               ↓
-                [gap-analyzer]   [per worktree]
-                      ↓
-                [feedback loop]
-                      ↓
-             [updated job specs]
+[create-sprint] → [setup-jobs] → [sprint-coordinator (autonomous)] → [retrospective]
+   (Sprint PRD)       ↓                      ↓
+   (Todos)      [job-creator]     [parallel implementation]
+                      ↓                      ↓
+                [gap-analyzer]      [verification loops]
+                      ↓                      ↓
+                [feedback loop]       [branch management]
+                      ↓                      ↓
+             [updated job specs]      [push/PR/merge]
+                                            ↓
+                                   [final report + errors]
 ```
 
 **setup-jobs agents:**
 - job-creator: Groups todos into code-colocated jobs using Sprint PRD context
 - gap-analyzer: Validates job specs and provides feedback for improvements
 
-**Next step (parallel implementation):**
-- Implementation agents work in separate worktrees
-- Each agent executes ONE job specification
-- NOT part of setup-jobs command
+**sprint-coordinator spawns:**
+- implementation agents (parallel, one per job)
+- verification agents (per job, feedback loops)
+- branch-manager agents (per repo, parallel)
+- conflict-resolution agents (as needed)
+
+**Autonomous execution**: Once setup-jobs completes, the sprint-coordinator runs the entire implementation autonomously with automatic verification, merging, and error handling.

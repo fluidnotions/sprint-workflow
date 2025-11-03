@@ -80,6 +80,12 @@
       "file": "agents/job-creator.md",
       "description": "Groups todos by code co-location",
       "model": "sonnet"
+    },
+    {
+      "name": "sprint-coordinator",
+      "file": "agents/sprint-coordinator.md",
+      "description": "Orchestrates parallel implementation, verification loops, and multi-repo management",
+      "model": "opus"
     }
   ],
   "hooks": {

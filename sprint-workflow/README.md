@@ -145,7 +145,7 @@ Generates comprehensive retrospective.
 
 ---
 
-## Included Agents (5)
+## Included Agents (6)
 
 **Planning Agents (Opus):**
 - `product-manager` - User stories & acceptance criteria
@@ -153,8 +153,11 @@ Generates comprehensive retrospective.
 - `senior-engineer` - Technical architecture
 - `gap-analyzer` - Architecture validation
 
-**Execution Agent:**
+**Organization Agent:**
 - `job-creator` (Sonnet) - Code co-location analysis
+
+**Orchestration Agent:**
+- `sprint-coordinator` (Opus) - Parallel implementation, verification loops, multi-repo management
 
 All agents auto-invoked by commands.
 
@@ -179,29 +182,32 @@ Interactive planning conversation → creates Sprint Brief.
 ```
 Multi-agent PRD generation → creates Sprint PRD and todos.
 
-### 4. Organize Jobs
+### 4. Setup Jobs & Launch Sprint
 ```bash
 /setup-jobs
 ```
-Creates job specs + worktrees.
+Creates job specs + worktrees + launches sprint-coordinator.
 
-### 4. Implement Jobs
+**The sprint-coordinator autonomously:**
+- Spawns implementation agents (parallel, one per job)
+- Runs verification feedback loops (automatic)
+- Manages branches across multiple repos
+- Auto-merges PRs when tests pass
+- Logs errors but continues sprint (non-blocking)
+
+### 5. Monitor (During Autonomous Execution)
 ```bash
-cd worktrees/feat-auth-system
-/implement_plan tasks/sprint_auth-system.md  # implementation-workflow plugin
-/verify_implementation                        # implementation-workflow plugin
-/commit                                       # implementation-workflow plugin
-/describe_pr                                  # implementation-workflow plugin
+/sprint-status  # Real-time dashboard (updates every 60s)
 ```
 
-### 5. Monitor
-```bash
-/sprint-status  # Run anytime
-```
+Check `sprint_errors_*.md` for any job failures (sprint continues anyway).
 
-### 6. Complete
+### 6. Review & Retrospective (After Sprint Completes)
 ```bash
-/sprint-retrospective  # After all PRs merged
+# Sprint-coordinator generates final report automatically
+# Review it and any error reports
+
+/sprint-retrospective  # Document learnings
 ```
 
 ---
