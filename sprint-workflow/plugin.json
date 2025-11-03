@@ -1,0 +1,118 @@
+{
+  "name": "sprint-workflow",
+  "version": "1.0.0",
+  "description": "Sprint planning, organization, tracking, and retrospectives with parallel development via git worktrees",
+  "author": "fluidnotions",
+  "license": "MIT",
+  "homepage": "https://github.com/fluidnotions/sprint-workflow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fluidnotions/sprint-workflow"
+  },
+  "keywords": [
+    "sprint",
+    "agile",
+    "scrum",
+    "planning",
+    "parallel-development",
+    "git-worktrees",
+    "retrospective"
+  ],
+  "commands": [
+    {
+      "name": "plan-sprint",
+      "file": "commands/plan-sprint.md",
+      "description": "Interactive sprint planning through conversation",
+      "category": "Sprint Planning"
+    },
+    {
+      "name": "create-sprint",
+      "file": "commands/create-sprint.md",
+      "description": "Initialize sprint with multi-agent PRD creation",
+      "category": "Sprint Management"
+    },
+    {
+      "name": "setup-jobs",
+      "file": "commands/setup-jobs.md",
+      "description": "Organize todos into code-colocated jobs with worktrees",
+      "category": "Sprint Management"
+    },
+    {
+      "name": "sprint-status",
+      "file": "commands/sprint-status.md",
+      "description": "Display sprint progress dashboard",
+      "category": "Sprint Monitoring"
+    },
+    {
+      "name": "sprint-retrospective",
+      "file": "commands/sprint-retrospective.md",
+      "description": "Generate sprint retrospective with metrics",
+      "category": "Sprint Completion"
+    }
+  ],
+  "agents": [
+    {
+      "name": "product-manager",
+      "file": "agents/product-manager.md",
+      "description": "Creates user stories and acceptance criteria",
+      "model": "opus"
+    },
+    {
+      "name": "ux-designer",
+      "file": "agents/ux-designer.md",
+      "description": "Defines user flows and UI specifications",
+      "model": "opus"
+    },
+    {
+      "name": "senior-engineer",
+      "file": "agents/senior-engineer.md",
+      "description": "Designs technical architecture",
+      "model": "opus"
+    },
+    {
+      "name": "gap-analyzer",
+      "file": "agents/gap-analyzer.md",
+      "description": "Validates architecture and identifies gaps",
+      "model": "opus"
+    },
+    {
+      "name": "job-creator",
+      "file": "agents/job-creator.md",
+      "description": "Groups todos by code co-location",
+      "model": "sonnet"
+    }
+  ],
+  "hooks": {
+    "file": "hooks/hooks.json",
+    "description": "Sprint workspace initialization"
+  },
+  "scripts": [
+    {
+      "name": "session_init",
+      "file": "scripts/session_init.sh",
+      "description": "Initialize sprint directories"
+    }
+  ],
+  "dependencies": {
+    "claude-code": ">=1.0.0"
+  },
+  "requirements": {
+    "git": ">=2.0.0",
+    "bash": true
+  },
+  "recommended_plugins": [
+    "implementation-workflow",
+    "codebase-research"
+  ],
+  "configuration": {
+    "default_pool_size": 3,
+    "max_pool_size": 10,
+    "directories": {
+      "plans": "thoughts/shared/plans",
+      "research": "thoughts/shared/research",
+      "sprint_plans": "thoughts/sprint-plans",
+      "tasks": "tasks",
+      "worktrees": "worktrees"
+    }
+  }
+}
