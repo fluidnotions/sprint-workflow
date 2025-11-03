@@ -6,6 +6,9 @@
 # Use PWD as fallback when CLAUDE_PROJECT_DIR not set
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 
+# Get project name from directory
+PROJECT_NAME=$(basename "$PROJECT_DIR")
+
 STATUS_LINES=()
 
 # Create tasks directory if it doesn't exist
@@ -20,11 +23,11 @@ if [ ! -d "$PROJECT_DIR/worktrees" ]; then
     STATUS_LINES+=("Created worktrees directory")
 fi
 
-# Create sprint-plans directory in thoughts if thoughts exists
+# Create sprint-plans directory with project subdirectory in thoughts if thoughts exists
 if [ -L "$PROJECT_DIR/thoughts" ] || [ -d "$PROJECT_DIR/thoughts" ]; then
-    if [ ! -d "$PROJECT_DIR/thoughts/sprint-plans" ]; then
-        mkdir -p "$PROJECT_DIR/thoughts/sprint-plans" 2>/dev/null
-        STATUS_LINES+=("Created sprint-plans directory")
+    if [ ! -d "$PROJECT_DIR/thoughts/sprint-plans/$PROJECT_NAME" ]; then
+        mkdir -p "$PROJECT_DIR/thoughts/sprint-plans/$PROJECT_NAME" 2>/dev/null
+        STATUS_LINES+=("Created sprint-plans/$PROJECT_NAME directory")
     fi
 fi
 

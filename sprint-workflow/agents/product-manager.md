@@ -118,7 +118,7 @@ Optional Context:
      - Given [context], When [action], Then [outcome]
      - Given [context], When [action], Then [outcome]
    - **Business Value**: [HIGH|MEDIUM|LOW]
-   - **Effort Estimate**: [story points or time]
+   - **Effort Estimate**: [story points only - no time estimates]
 
 #### Should Have (P1)
 [Similar format]

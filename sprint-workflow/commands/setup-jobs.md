@@ -182,7 +182,7 @@ After all jobs complete:
 ### Step 9: Sprint Retrospective
 Generate `{datetime}_sprint_retro.md`:
 - Tasks completed vs planned
-- Time estimates vs actual
+- Story points estimated vs actual complexity
 - Issues encountered
 - Improvements for next sprint
 

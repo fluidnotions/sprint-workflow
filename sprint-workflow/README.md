@@ -24,11 +24,33 @@ This plugin does **ONE thing**: manages sprints from planning to completion.
 /plugin install sprint-workflow
 ```
 
-## Commands (4)
+## Commands (5)
 
-### `/create-sprint` - Initialize Sprint
+### `/plan-sprint` - Interactive Sprint Planning
 
-Creates comprehensive sprint plan with PRD, todos, and architecture validation.
+Conversational sprint planning to create a Sprint Brief.
+
+**Usage:**
+```bash
+/plan-sprint
+```
+
+**What it does:**
+1. Guides you through interactive planning conversation
+2. Auto-estimates story points based on complexity
+3. Iteratively refines scope and priorities
+4. Creates Sprint Brief document
+
+**Output:**
+- Sprint Brief: `thoughts/sprint-plans/{project_name}/{datetime}_brief_{name}.md`
+
+**Next:** Run `/create-sprint`
+
+---
+
+### `/create-sprint` - Generate Sprint PRD
+
+Creates comprehensive Sprint PRD with multi-agent analysis, todos, and architecture validation.
 
 **Usage:**
 ```bash
@@ -36,14 +58,14 @@ Creates comprehensive sprint plan with PRD, todos, and architecture validation.
 ```
 
 **What it does:**
-1. Spawns parallel agents (PM, UX, Engineering) for PRD
-2. Generates sprint plan in `thoughts/shared/plans/`
+1. Spawns parallel agents (PM, UX, Engineering) for comprehensive PRD
+2. Generates Sprint PRD in `thoughts/sprint-plans/{project_name}/`
 3. Creates phased todo list
 4. Validates architecture
 5. Sets up directory structure
 
 **Output:**
-- Sprint plan: `thoughts/shared/plans/{datetime}_sprint_{name}.md`
+- Sprint PRD: `thoughts/sprint-plans/{project_name}/{datetime}_prd_{name}.md`
 - Todo list: `{datetime}_todos.md`
 - Architecture validation report
 
@@ -145,12 +167,19 @@ All agents auto-invoked by commands.
 /research_codebase "authentication"  # codebase-research plugin
 ```
 
-### 2. Create Sprint
+### 2. (Optional) Plan Sprint
+```bash
+/plan-sprint
+```
+Interactive planning conversation → creates Sprint Brief.
+
+### 3. Create Sprint PRD
 ```bash
 /create-sprint "Auth Sprint"
 ```
+Multi-agent PRD generation → creates Sprint PRD and todos.
 
-### 3. Organize Jobs
+### 4. Organize Jobs
 ```bash
 /setup-jobs
 ```
@@ -181,20 +210,24 @@ cd worktrees/feat-auth-system
 
 ```
 your-project/
-├── thoughts/shared/
-│   ├── plans/          # Sprint plans
-│   └── research/       # Research (from codebase-research plugin)
-├── tasks/              # Job specifications
-├── worktrees/          # Git worktrees (one per job)
+├── thoughts/
+│   ├── sprint-plans/
+│   │   └── your-project/     # All sprint artifacts (by project)
+│   │       ├── {datetime}_brief_{name}.md   # Sprint Brief (from /plan-sprint)
+│   │       └── {datetime}_prd_{name}.md     # Sprint PRD (from /create-sprint)
+│   └── shared/
+│       └── research/          # Research (from codebase-research plugin)
+├── tasks/                     # Job specifications
+├── worktrees/                 # Git worktrees (one per job)
 │   ├── feat-auth/
 │   ├── feat-api/
 │   └── feat-ui/
-├── *_todos.md          # Sprint todos
-├── sprint_status.md    # Live dashboard
-└── *_sprint_retro.md  # Retrospectives
+├── *_todos.md                 # Sprint todos
+├── sprint_status.md           # Live dashboard
+└── *_sprint_retro.md         # Retrospectives
 ```
 
-Auto-created by session hook.
+Auto-created by session hook with project-specific subdirectories.
 
 ---
 
@@ -223,7 +256,7 @@ Each job gets isolated directory:
 
 ## Best Practices
 
-1. **Right-size sprints:** 3-10 jobs, 2-5 todos/job, 1-2 weeks
+1. **Right-size sprints:** 3-10 jobs, 2-5 todos/job, 20-40 story points
 2. **Meaningful names:** "oauth-integration" not "task-1"
 3. **Monitor regularly:** `/sprint-status` daily
 4. **Always retrospective:** Even failed sprints have learnings

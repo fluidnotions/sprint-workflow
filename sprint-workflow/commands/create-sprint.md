@@ -1,19 +1,25 @@
 ---
-description: Initialize a new sprint from approved plans with comprehensive task breakdown
+description: Initialize a new sprint from approved briefs with comprehensive Sprint PRD
 allowed-tools: Read, Write, Grep, Glob, Task
 ---
 
 # Create Sprint
 
-Initialize a comprehensive sprint with PRD creation, task decomposition, and todo generation.
+Initialize a comprehensive sprint with Sprint PRD creation, task decomposition, and todo generation.
 
 ## Step 1: Identify Sprint Scope
 
+Get the project name from the current working directory:
+```bash
+PROJECT_NAME=$(basename "$PWD")
+```
+
 Check for arguments or ask:
 - Sprint name/theme
-- Target completion (e.g., "2 weeks", "Q1")
 - Key features to include
-- Reference to approved plan in `thoughts/shared/plans/`
+- Reference to approved brief in `thoughts/sprint-plans/{project_name}/`
+
+**IMPORTANT:** Do NOT ask about timeline, duration, or target completion dates. Use story points only for estimation.
 
 ## Step 2: Multi-Agent PRD Creation
 
@@ -46,18 +52,28 @@ Using senior-engineer agent, define:
 Model: opus (for architecture)
 ```
 
-## Step 3: Generate Sprint Plan
+## Step 3: Generate Sprint PRD
 
-Synthesize agent outputs into sprint plan at:
-`thoughts/shared/plans/{datetime}_sprint_{name}.md`
+Synthesize agent outputs into Sprint PRD at:
+`thoughts/sprint-plans/{project_name}/{datetime}_prd_{name}.md`
+
+(Where `{project_name}` is the basename of the current working directory)
 
 Include:
 - Executive summary
 - Scope and objectives
-- Task breakdown with priorities
+- Task breakdown with priorities (story points only)
 - Technical requirements
-- Timeline and milestones
 - Success criteria
+- Story point distribution by phase
+
+**CRITICAL - DO NOT INCLUDE:**
+- Duration estimates (weeks, days, hours)
+- Timeline or target dates
+- Time-based milestones
+- Any time-to-completion estimates
+
+**USE ONLY:** Story points for complexity estimation
 
 ## Step 4: Create Todo List
 
@@ -66,7 +82,7 @@ Generate `{datetime}_todos.md` with all tasks:
 ```markdown
 # Sprint: {name}
 Generated: {datetime}
-Plan: thoughts/shared/plans/{sprint_plan}.md
+Sprint PRD: thoughts/sprint-plans/{project_name}/{prd_file}.md
 
 ## Phase 1: Foundation
 [ ] Set up database schema
@@ -93,7 +109,7 @@ Using gap-analyzer agent with websearch-researcher:
 - Check for missing components
 - Identify technical risks
 - Suggest improvements
-Input: Sprint plan and todos
+Input: Sprint PRD and todos
 Output: Validation report with recommendations
 ```
 
@@ -102,8 +118,8 @@ Output: Validation report with recommendations
 If gap-analyzer finds issues:
 1. Present findings to user
 2. Ask: "Apply recommended changes? (yes/no)"
-3. If yes, update sprint plan and todos
-4. Document changes in sprint plan
+3. If yes, update Sprint PRD and todos
+4. Document changes in Sprint PRD
 
 ## Output
 
@@ -111,7 +127,7 @@ Display sprint summary:
 ```
 Sprint "{name}" initialized successfully!
 
-📋 Sprint Plan: thoughts/shared/plans/{datetime}_sprint_{name}.md
+📋 Sprint PRD: thoughts/sprint-plans/{project_name}/{datetime}_prd_{name}.md
 📝 Todo List: {datetime}_todos.md
 ✅ Architecture validated and optimized
 

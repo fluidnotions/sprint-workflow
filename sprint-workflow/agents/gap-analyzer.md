@@ -112,7 +112,7 @@ Input Required:
 1. **{Gap}**: {description}
    - Risk: {impact if not addressed}
    - Recommendation: {specific fix}
-   - Effort: {time estimate}
+   - Effort: {story points based on complexity}
 
 #### Important Gaps (Should Fix)
 1. **{Gap}**: {description}

@@ -37,7 +37,6 @@ Create `{datetime}_sprint_retro.md`:
 # Sprint Retrospective: {sprint_name}
 
 ## Overview
-- Duration: {start} to {end} ({days} days)
 - Team: Claude Code + {developer}
 - Parallel Agents Used: {max_concurrent}
 
@@ -60,12 +59,10 @@ Create `{datetime}_sprint_retro.md`:
 - Bugs Fixed: {fixed}
 - Code Review Issues: {issues}
 
-## Timeline
-- Sprint Planning: {time}h
-- Implementation: {time}h
-- Testing: {time}h
-- Documentation: {time}h
-- Total: {total}h
+## Story Points
+- Planned Story Points: {planned_points}
+- Completed Story Points: {completed_points} ({percentage}%)
+- Velocity: {completed_points} points
 
 ## Completed Features
 1. ✅ {feature_1}

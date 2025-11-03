@@ -22,14 +22,14 @@
     {
       "name": "plan-sprint",
       "file": "commands/plan-sprint.md",
-      "description": "Interactive sprint planning through conversation",
+      "description": "Interactive planning to create Sprint Brief",
       "category": "Sprint Planning"
     },
     {
       "name": "create-sprint",
       "file": "commands/create-sprint.md",
-      "description": "Initialize sprint with multi-agent PRD creation",
-      "category": "Sprint Management"
+      "description": "Generate comprehensive Sprint PRD with multi-agent analysis",
+      "category": "Sprint Planning"
     },
     {
       "name": "setup-jobs",

@@ -146,9 +146,9 @@ Parallel Batch 2:
 
 ### Optimization Notes
 - Total parallel execution paths: {count}
-- Estimated time with parallelization: {estimate}
-- Estimated time sequential: {estimate}
-- Speed improvement: {percentage}%
+- Story points with parallelization: {total story points across jobs}
+- Story points sequential: {sum of all story points}
+- Efficiency gain: {percentage}% through parallel development
 ```
 
 ## Best Practices

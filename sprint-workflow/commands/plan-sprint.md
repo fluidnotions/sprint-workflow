@@ -7,29 +7,34 @@ allowed-tools: Read, Write, AskUserQuestion, Glob
 
 Collaboratively define sprint goals and scope through iterative conversation and refinement.
 
-This command guides you through planning a sprint with clarifying questions, scope refinement, and multiple revisions until the plan is ready for implementation.
+This command guides you through planning a sprint with clarifying questions, scope refinement, and multiple revisions until the brief is ready for implementation.
 
 ## Overview
 
-**Purpose:** Create a well-defined sprint plan through conversation before generating the full PRD with `/create-sprint`.
+**Purpose:** Create a well-defined sprint brief through conversation before generating the full PRD with `/create-sprint`.
 
-**Output:** Sprint plan document in `thoughts/sprint-plans/{datetime}_plan_{name}.md`
+**Output:** Sprint brief document in `thoughts/sprint-plans/{project_name}/{datetime}_brief_{name}.md`
 
-**Next Step:** Use `/create-sprint` to generate comprehensive PRD, tasks, and architecture validation from this plan.
+**Next Step:** Use `/create-sprint` to generate comprehensive Sprint PRD, tasks, and architecture validation from this brief.
 
 ---
 
-## Step 1: Check for Existing Plans
+## Step 1: Determine Project Name and Check for Existing Briefs
 
-Look for existing draft plans in `thoughts/sprint-plans/`:
-
+Get the project name from the current working directory:
 ```bash
-ls -t thoughts/sprint-plans/*.md 2>/dev/null | head -5
+PROJECT_NAME=$(basename "$PWD")
 ```
 
-If drafts exist, ask user:
-- "Found existing draft plans. Continue with latest draft or start fresh?"
-- If continue: Load the latest draft
+Look for existing briefs in `thoughts/sprint-plans/$PROJECT_NAME/`:
+
+```bash
+ls -t thoughts/sprint-plans/$PROJECT_NAME/*.md 2>/dev/null | head -5
+```
+
+If briefs exist, ask user:
+- "Found existing sprint briefs. Continue with latest brief or start fresh?"
+- If continue: Load the latest brief
 - If fresh: Proceed to Step 2
 
 ---
@@ -63,18 +68,20 @@ Ask the user these **open-ended questions** (use AskUserQuestion for the first o
 
 ---
 
-## Step 3: Initial Draft Creation
+## Step 3: Initial Brief Creation
 
-Based on initial conversation, create first draft:
+Based on initial conversation, create the brief:
 
-**File:** `thoughts/sprint-plans/{datetime}_draft_v1_{name}.md`
+**File:** `thoughts/sprint-plans/{project_name}/{datetime}_brief_{name}.md`
+
+(Where `{project_name}` is the basename of the current working directory)
 
 **Structure:**
 
 ```markdown
-# Sprint Plan: {name}
+# Sprint Brief: {name}
 
-**Status:** Draft v1
+**Status:** 🚧 In Progress
 **Created:** {datetime}
 **Last Updated:** {datetime}
 
@@ -107,19 +114,19 @@ Based on initial conversation, create first draft:
 ## Story Points Estimate
 
 **Total (rough):** TBD
-**Note:** No time estimates - using story points only
+**Note:** Story points only - no time estimates
 
 ## Next Steps
 
 - [ ] Clarify scope and priorities
 - [ ] Add detail to tasks
-- [ ] Estimate story points
+- [ ] Auto-estimate story points
 - [ ] Order by dependencies and value
 ```
 
 Display to user:
 ```
-📝 Created initial draft: thoughts/sprint-plans/{filename}
+📝 Created sprint brief: thoughts/sprint-plans/{project_name}/{filename}
 
 This is a rough first pass. Let's refine it together.
 ```
@@ -148,16 +155,17 @@ Review the feature list and ask:
    - "Which of these tasks seems most complex or risky?"
    - "Any tasks here that you're uncertain how to implement?"
 
-**Update draft to v2:**
+**Update the brief:**
 - Add missing features
 - Remove nice-to-haves (move to "Future Sprints" section)
 - Add priority markers (P0, P1, P2)
 - Note dependencies
 - Flag complex/risky items
+- Update "Last Updated" timestamp
 
 ### Round 2: Detail and Breakdown
 
-For each feature/task, ask for detail:
+For each feature/task, gather detail and automatically estimate:
 
 1. **What does it involve?**
    - "For [feature X], what are the main sub-tasks or components?"
@@ -167,23 +175,38 @@ For each feature/task, ask for detail:
    - "How will you know [feature X] is complete?"
    - "What should it do (and not do)?"
 
-3. **Story points:**
-   - "On a scale of 1 (trivial) to 13 (huge/complex), how would you size [feature X]?"
-   - "For reference: 1=hours, 3=day, 5=2-3 days, 8=week, 13=needs breakdown"
+**Automatic Story Point Estimation:**
 
-**IMPORTANT:** If user provides time estimates, convert to story points:
-- "I notice you mentioned time - let's use story points instead. If that's about 2 days of work, that's typically a 5. Sound right?"
+Based on the feature complexity and sub-tasks, automatically assign story points using this guide:
+- **1 point**: Trivial change (single file, simple logic, minutes to hours)
+- **2 points**: Simple task (few files, straightforward logic, few hours)
+- **3 points**: Moderate task (several files, some complexity, half to full day)
+- **5 points**: Significant feature (multiple files/components, moderate complexity, 2-3 days)
+- **8 points**: Large feature (many files, high complexity, cross-cutting concerns, week of work)
+- **13 points**: Very large (needs breakdown into smaller tasks)
+- **21+ points**: Too large (must break down)
 
-**Update draft to v3:**
+**Estimation factors to consider:**
+- Number of files/components to modify
+- Cross-cutting concerns (touching multiple layers: DB, API, UI)
+- External dependencies or integrations
+- Testing complexity
+- Unknown or risky areas
+
+**IMPORTANT:** If user provides time estimates, politely redirect:
+- "Let me convert that to story points based on complexity rather than time."
+
+**Update the brief:**
 - Add sub-tasks for each feature
 - Add acceptance criteria
-- Add story points per task
+- Add story points per task (auto-estimated)
 - Calculate total story points
 - Group by phase (Foundation, Core, Polish)
+- Update "Last Updated" timestamp
 
 ### Round 3: Validation and Ordering
 
-Present the refined plan and ask:
+Present the refined brief and ask:
 
 1. **Feasibility:**
    - "Looking at {total story points} points total, does this feel achievable for one sprint?"
@@ -197,27 +220,28 @@ Present the refined plan and ask:
    - "Is there anything about testing, documentation, or deployment we should include?"
    - "Any technical debt to address while we're in this area?"
 
-**Update draft to v4:**
+**Update the brief:**
 - Reorder tasks by implementation sequence
 - Add testing/docs tasks
 - Adjust scope if too large
 - Create "Future Sprint Backlog" section for deferred items
+- Update "Last Updated" timestamp
 
 ---
 
 ## Step 5: Final Review
 
-Display the refined plan and ask:
+Display the refined brief and ask:
 
 **Final Confirmation:**
 
 Use AskUserQuestion:
 ```
-Question: "Is this sprint plan ready to move forward?"
+Question: "Is this sprint brief ready to move forward?"
 Options:
-  - "Yes, create the full sprint" → Proceed to Step 6
+  - "Yes, create the full sprint PRD" → Proceed to Step 6
   - "No, needs more refinement" → Back to Step 4
-  - "Save draft for later" → Exit with draft saved
+  - "Save for later" → Exit with brief saved
 ```
 
 If "needs more refinement":
@@ -227,20 +251,20 @@ If "needs more refinement":
 
 ---
 
-## Step 6: Finalize Plan
+## Step 6: Finalize Brief
 
-Create final version:
+Update the existing brief to final status:
 
-**File:** `thoughts/sprint-plans/{datetime}_plan_{name}.md`
+**File:** `thoughts/sprint-plans/{project_name}/{datetime}_brief_{name}.md` (same file, updated)
 
-**Structure:**
+**Final Structure:**
 
 ```markdown
-# Sprint Plan: {name}
+# Sprint Brief: {name}
 
 **Status:** ✅ Ready for Implementation
-**Created:** {created_date}
-**Finalized:** {datetime}
+**Created:** {original_created_date}
+**Last Updated:** {datetime}
 **Story Points:** {total} points
 
 ## Sprint Goal
@@ -329,18 +353,13 @@ Create final version:
 3. Run `/setup-jobs` to organize tasks by code co-location
 4. Begin implementation in parallel worktrees
 
-## Revision History
+## Notes
 
-- v1 ({date}): Initial draft
-- v2 ({date}): Scope and priority refinement
-- v3 ({date}): Detail and story points added
-- v4 ({date}): Ordering and final adjustments
-- Final ({date}): Ready for implementation
-```
+**Story Point Estimation:**
+All story points were automatically estimated by Claude Code based on feature complexity, number of components, cross-cutting concerns, and technical risk. Story points represent relative complexity, not time estimates.
 
-Delete draft versions:
-```bash
-rm thoughts/sprint-plans/*_draft_*.md 2>/dev/null
+**Planning Process:**
+This brief was iteratively refined through multiple rounds of clarification and adjustment, with the final version representing the agreed scope and priorities.
 ```
 
 ---
@@ -350,9 +369,9 @@ rm thoughts/sprint-plans/*_draft_*.md 2>/dev/null
 Display completion message:
 
 ```
-✅ Sprint Plan Finalized!
+✅ Sprint Brief Finalized!
 
-📋 Plan: thoughts/sprint-plans/{datetime}_plan_{name}.md
+📋 Brief: thoughts/sprint-plans/{project_name}/{datetime}_brief_{name}.md
 📊 Story Points: {total} points
 🎯 {feature_count} features across 3 phases
 
@@ -360,16 +379,16 @@ Sprint Summary:
 {sprint_goal}
 
 Ready to proceed:
-1. Review the plan: thoughts/sprint-plans/{filename}
+1. Review the brief: thoughts/sprint-plans/{project_name}/{filename}
 2. When ready, run: /create-sprint
 
 The /create-sprint command will:
-- Generate comprehensive PRD with PM, UX, and Engineering agent input
+- Generate comprehensive Sprint PRD with PM, UX, and Engineering agent input
 - Create detailed todo list
 - Validate architecture
 - Set up for parallel development
 
-Would you like to review the plan now or proceed with /create-sprint?
+Would you like to review the brief now or proceed with /create-sprint?
 ```
 
 ---
@@ -383,14 +402,15 @@ Would you like to review the plan now or proceed with /create-sprint?
 - Don't rush through questions mechanically
 
 **Iterative Refinement:**
-- Multiple passes (v1 → v2 → v3 → v4 → final)
-- Each version gets more detailed
-- User sees progress at each stage
-- Save drafts between sessions
+- Multiple rounds of updates to the same brief file
+- Each round adds more detail and refinement
+- User sees progress with "Last Updated" timestamp
+- Brief saved continuously during refinement
 
 **No Time Estimates:**
-- Always use story points
-- If user mentions time, gently redirect to story points
+- Always use story points (auto-estimated by Claude Code)
+- Story points based on complexity, not time
+- If user mentions time, politely convert to story points
 - Explain: "Story points help us focus on complexity, not hours"
 
 **Story Point Guide:**
@@ -422,7 +442,7 @@ Would you like to review the plan now or proceed with /create-sprint?
      ↓                   ↓
  (interactive)      (agent-driven)
  (human-led)        (AI synthesis)
- (scope & goals)    (PRD & tasks)
+ (Sprint Brief)     (Sprint PRD & tasks)
 ```
 
 **Before this command:**
@@ -431,10 +451,10 @@ Would you like to review the plan now or proceed with /create-sprint?
 - Mixed up features and tasks
 
 **After this command:**
-- Clear sprint goal
+- Clear sprint goal in Sprint Brief
 - Prioritized features
 - Story points estimated
-- Ready for detailed PRD generation
+- Ready for detailed Sprint PRD generation
 
 ---
 
@@ -484,9 +504,9 @@ Would you like to review the plan now or proceed with /create-sprint?
 
 **User:** "When I can publish posts, people can find them via search, and share them"
 
-**Assistant:** *Creates v1 draft*
+**Assistant:** *Creates brief*
 
-"I've created an initial draft. Looking at this list, I notice 'comments' was mentioned - is that essential for the first sprint or could that be added later?"
+"I've created an initial sprint brief. Looking at this list, I notice 'comments' was mentioned - is that essential for the first sprint or could that be added later?"
 
 **User:** "Later is fine"
 
@@ -494,25 +514,21 @@ Would you like to review the plan now or proceed with /create-sprint?
 
 **User:** "Posts for sure. Then tags. Search and RSS would be nice but not critical."
 
-**Assistant:** *Updates to v2 with priorities*
+**Assistant:** *Updates brief with priorities*
 
 "Let's break down 'Posts with markdown'. What does that involve?"
 
 **User:** "Database schema, markdown parser, post editor, post display page"
 
-**Assistant:** "How would you size that? Remember: 1=trivial, 3=half day, 5=2-3 days, 8=week, 13=too big"
-
-**User:** "Maybe 8 points total?"
-
-**Assistant:** "Let's break it down: database schema (2), markdown parser (3), editor (5), display page (3). That's 13 points just for posts - want to keep all in one sprint or split it?"
+**Assistant:** "Got it. Based on that breakdown, I'm estimating: database schema (2 points - straightforward model), markdown parser (3 points - moderate complexity with library integration), editor (5 points - significant UI work with preview), display page (3 points - moderate with rendering and styling). That's 13 points just for posts - want to keep all in one sprint or split it?"
 
 **User:** "Let's do schema, parser, and display (8 points) this sprint. Editor next sprint."
 
-**Assistant:** *Updates to v3, continues refining...*
+**Assistant:** *Updates brief, continues refining...*
 
 {After several rounds}
 
-**Assistant:** "Here's the refined plan: Blog foundation sprint - 24 story points total. Phase 1: schema and models (5 pts), Phase 2: markdown rendering and display (8 pts), Phase 3: tags and basic search (7 pts), polish (4 pts). Does this feel achievable?"
+**Assistant:** "I've updated the brief with all details. Blog foundation sprint - 24 story points total (auto-estimated based on complexity). Phase 1: schema and models (5 pts), Phase 2: markdown rendering and display (8 pts), Phase 3: tags and basic search (7 pts), polish (4 pts). Does this feel achievable?"
 
 **User:** "Yes!"
 
