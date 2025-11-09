@@ -9,6 +9,7 @@ from langgraph.graph import StateGraph, END, START
 from langgraph.checkpoint.memory import MemorySaver
 
 from .state import SprintWorkflowState
+from .nodes import synthesize_planning_node
 
 
 # ============================================================================
@@ -133,7 +134,7 @@ def build_workflow() -> StateGraph:
     workflow.add_node("pm_planning", stub_node)
     workflow.add_node("ux_planning", stub_node)
     workflow.add_node("engineering_planning", stub_node)
-    workflow.add_node("synthesize_planning", stub_node)
+    workflow.add_node("synthesize_planning", synthesize_planning_node)
 
     # ========================================================================
     # GAP ANALYSIS NODES
