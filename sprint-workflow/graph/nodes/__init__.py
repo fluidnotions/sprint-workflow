@@ -10,3 +10,6 @@ __all__ = [
 from .feedback import update_planning_from_feedback_node
 
 __all__.append("update_planning_from_feedback_node")
+from .approval import user_approval_node
+
+__all__.append("user_approval_node")
