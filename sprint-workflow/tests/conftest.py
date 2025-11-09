@@ -3,6 +3,13 @@
 Provides shared fixtures and configuration for all tests.
 """
 
+import sys
+from pathlib import Path
+
+# Add sprint-workflow directory to Python path for imports
+sprint_workflow_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(sprint_workflow_dir))
+
 import pytest
 from datetime import datetime
 from typing import Dict, Any, List

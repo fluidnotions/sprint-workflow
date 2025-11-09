@@ -3,7 +3,7 @@
 import pytest
 from typing import get_type_hints
 
-from langgraph.state import (
+from graph.state import (
     SprintWorkflowState,
     JobSpec,
     RepoInfo,
@@ -259,7 +259,7 @@ class TestTypeAliases:
 
         # This test just validates we can import the type
         # TypedDict Literal validation happens at type-check time
-        from langgraph.state import WorkflowPhase
+        from graph.state import WorkflowPhase
         assert WorkflowPhase is not None
 
     def test_job_status_values(self):
@@ -273,5 +273,5 @@ class TestTypeAliases:
         ]
 
         # This test just validates we can import the type
-        from langgraph.state import JobStatus
+        from graph.state import JobStatus
         assert JobStatus is not None
