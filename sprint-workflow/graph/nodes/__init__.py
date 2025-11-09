@@ -13,3 +13,6 @@ __all__.append("update_planning_from_feedback_node")
 from .approval import user_approval_node
 
 __all__.append("user_approval_node")
+from .prd import generate_sprint_prd_node, create_jobs_node, validate_jobs_node, setup_git_worktrees_node
+
+__all__.extend(["generate_sprint_prd_node", "create_jobs_node", "validate_jobs_node", "setup_git_worktrees_node"])
