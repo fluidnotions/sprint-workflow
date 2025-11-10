@@ -1,5 +1,11 @@
 # Sprint Workflow
 
+## Status
+
+Early development phase. Initial agent-generated scaffolding is being corrected and aligned, so features and structure are still unstable.
+
+## Overview
+
 **Automated sprint execution with deterministic state machines.**
 
 Transform a sprint theme into deployed code through parallel job execution, automatic verification, and merge orchestration—all managed by a LangGraph state machine that guarantees correct execution order and handles failures gracefully.
@@ -64,8 +70,8 @@ export ANTHROPIC_API_KEY="your-api-key"
 
 ## Commands
 
-- `/plan-sprint` - Interactive planning session (REQUIRED - creates Sprint Brief)
-- `/create-sprint` - Generate Sprint PRD from brief, then launch execution
+- `/plan-sprint` - Interactive planning session (Creates Sprint Brief)
+- `/create-sprint` - Generate Sprint PRD and todos from brief, then launch execution
 - `/sprint-status` - Real-time progress dashboard
 - `/sprint-retrospective` - Post-sprint metrics and analysis
 
@@ -85,12 +91,9 @@ The workflow has two phases:
 7. **Verification** - Tests and validates each job (max 5 retries per job)
 8. **Integration** - Manages branches, creates PRs, and merges
 
-See [LANGGRAPH.md](LANGGRAPH.md) for technical details, state schemas, and debugging tools.
-
 ## Documentation
 
 - [LANGGRAPH.md](LANGGRAPH.md) - State machine architecture and technical reference
-- [CLAUDE.md](CLAUDE.md) - Developer guide for contributing
 - [docs/DIAGRAMS.md](docs/DIAGRAMS.md) - Workflow visualization
 
 ## Requirements
