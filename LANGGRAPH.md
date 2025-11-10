@@ -17,56 +17,21 @@ Sprint execution (gap analysis → job creation → implementation → merge) is
 
 ## Architecture
 
-### Two-Phase Workflow
+### Workflow Overview
 
-**Phase 1: Planning (Claude Code Commands)**
-```
-/plan-sprint → Sprint Brief (optional, conversational)
-/create-sprint → Multi-agent PRD + todos
-              → Hands off to LangGraph
-```
+![Workflow Diagram](docs/workflow-diagram.png)
 
-**Phase 2: Execution (LangGraph State Machine)**
-```
-START (receives PRD + todos from /create-sprint)
-  ↓
-[pm_planning] ────┐
-[ux_planning] ────┼──→ [synthesize_planning]
-[engineering_planning]┘        ↓
-                    [gap_analysis] ←─┐
-                         ↓            │ (max 3 retries)
-                    (has issues?) ────┤
-                         ↓            │
-                    [update_planning]─┘
-                         ↓
-                    [generate_prd]
-                         ↓
-                    [create_jobs]
-                         ↓
-                    [validate_jobs] ←─┐
-                         ↓            │ (max 3 retries)
-                    (has issues?) ────┤
-                         ↓            │
-                    [update_jobs]─────┘
-                         ↓
-                    [setup_worktrees]
-                         ↓
-                    [parallel_implementation]
-                         ↓
-                    [verification_loop] ←─┐
-                         ↓                │ (retry until all verified/failed)
-                    (jobs pending?) ──────┤
-                         ↓                │
-                    (max 5 retries/job)───┘
-                         ↓
-                    [manage_branches]
-                         ↓
-                    [push_and_merge]
-                         ↓
-                    [generate_final_report]
-                         ↓
-                    END
-```
+**Two-phase execution:**
+
+1. **Planning Phase** - `/create-sprint` invokes parallel agents (PM, UX, Engineering) to generate comprehensive PRD and todos
+2. **Execution Phase** - LangGraph state machine takes PRD + todos and executes the complete workflow with feedback loops and retry logic
+
+**Key workflow features:**
+- **Parallel planning** - PM, UX, Engineering nodes execute simultaneously from START
+- **Gap analysis loop** - Validates architecture with up to 3 retry iterations
+- **Job validation loop** - Ensures job specifications are sound with up to 3 retries
+- **Verification loop** - Retries failed jobs up to 5 times each
+- **Conditional routing** - Dotted edges in diagram show decision points
 
 ### State Structure
 
