@@ -1,41 +1,71 @@
 # LangGraph Sprint Executor
 
-This plugin includes an **optional** LangGraph-based sprint executor that provides deterministic, resumable workflow orchestration.
+LangGraph is the **core execution engine** for sprint workflow. After `/create-sprint` generates the PRD and todos, LangGraph takes over to handle the entire execution phase.
 
 ## Why LangGraph?
 
-The default `sprint-coordinator` agent uses prompt-based orchestration. LangGraph provides:
+Sprint execution (gap analysis → job creation → implementation → merge) is **too complex for prompt-based orchestration** to handle reliably. LangGraph provides:
 
 ✅ **Deterministic execution** - State machine guarantees correct phase ordering
 ✅ **Resumability** - Can resume from any point if crash/interruption
-✅ **Explicit feedback loops** - Verification retry logic is guaranteed
+✅ **Explicit feedback loops** - Gap analysis and job validation loops guaranteed (max 3 retries each)
+✅ **Verification retry loops** - Automatic retry up to 5 times per failed job
 ✅ **State inspection** - Can inspect workflow state at any node
 ✅ **Visualization** - Generate workflow diagrams
 ✅ **Better debugging** - See exactly where failures occur
+✅ **Non-blocking errors** - Failed jobs generate reports but don't stop the sprint
 
 ## Architecture
 
-### State Machine Phases
+### Two-Phase Workflow
 
+**Phase 1: Planning (Claude Code Commands)**
 ```
-START
+/plan-sprint → Sprint Brief (optional, conversational)
+/create-sprint → Multi-agent PRD + todos
+              → Hands off to LangGraph
+```
+
+**Phase 2: Execution (LangGraph State Machine)**
+```
+START (receives PRD + todos from /create-sprint)
   ↓
-[initialize]        Load jobs, detect repos
-  ↓
-[spawn_implementation]  Spawn agents in parallel
-  ↓
-[verify]           Run verification on completed jobs
-  ↓  ↓
-  │  └─→ (retry if failed, max 5 iterations)
-  │      └─→ back to [verify]
-  ↓
-[manage_branches]  Update from main, resolve conflicts
-  ↓
-[push_merge]       Push + PR + auto-merge (or local merge)
-  ↓
-[final_report]     Generate execution report
-  ↓
-END
+[pm_planning] ────┐
+[ux_planning] ────┼──→ [synthesize_planning]
+[engineering_planning]┘        ↓
+                    [gap_analysis] ←─┐
+                         ↓            │ (max 3 retries)
+                    (has issues?) ────┤
+                         ↓            │
+                    [update_planning]─┘
+                         ↓
+                    [generate_prd]
+                         ↓
+                    [create_jobs]
+                         ↓
+                    [validate_jobs] ←─┐
+                         ↓            │ (max 3 retries)
+                    (has issues?) ────┤
+                         ↓            │
+                    [update_jobs]─────┘
+                         ↓
+                    [setup_worktrees]
+                         ↓
+                    [parallel_implementation]
+                         ↓
+                    [verification_loop] ←─┐
+                         ↓                │ (retry until all verified/failed)
+                    (jobs pending?) ──────┤
+                         ↓                │
+                    (max 5 retries/job)───┘
+                         ↓
+                    [manage_branches]
+                         ↓
+                    [push_and_merge]
+                         ↓
+                    [generate_final_report]
+                         ↓
+                    END
 ```
 
 ### State Structure
@@ -97,20 +127,32 @@ The LangGraph executor is registered as an MCP server in `plugin.json`:
 
 ## Usage
 
-### Option 1: Use via MCP Tool (Recommended)
+### Automatic Invocation (Default)
 
-In `setup-jobs.md` Step 6, use the MCP tool instead of spawning coordinator agent:
+LangGraph is automatically invoked by `/create-sprint` after PRD and todos are generated:
 
+```bash
+/create-sprint "Auth Sprint"
+# → Generates PRD + todos
+# → Automatically invokes LangGraph MCP server
+# → Sprint execution begins
 ```
+
+### Manual Invocation (If Needed)
+
+If you need to manually trigger LangGraph execution:
+
+```bash
+# Use the MCP tool directly
 mcp__langgraph-sprint-executor__execute_sprint(
   project_name="my-project",
-  sprint_prd_path="thoughts/sprint-plans/my-project/2025-11-03_prd_*.md",
-  todos_path="2025-11-03_todos.md",
+  sprint_prd_path="thoughts/sprint-plans/my-project/*_prd_*.md",
+  todos_path="*_todos.md",
   pool_size=3
 )
 ```
 
-### Option 2: Direct Python Execution
+### Direct Python Execution (Advanced)
 
 ```bash
 cd /path/to/project
@@ -279,32 +321,33 @@ Final execution report:
 
 ## Visualization
 
-You can visualize the workflow graph:
+The complete workflow graph is available in the repository:
 
-```python
-from IPython.display import Image
-from langgraph_sprint_executor import build_sprint_workflow
+![Sprint Workflow Diagram](docs/workflow-diagram.png)
 
-workflow = build_sprint_workflow()
+You can regenerate the diagram with:
+
+```bash
+python3 -c "
+from graph.workflow import build_workflow
+
+workflow = build_workflow()
 app = workflow.compile()
+graph = app.get_graph()
 
-# Generate diagram
-Image(app.get_graph().draw_mermaid_png())
+# Generate PNG
+mermaid_png = graph.draw_mermaid_png()
+with open('docs/workflow-diagram.png', 'wb') as f:
+    f.write(mermaid_png)
+
+# Generate Mermaid syntax
+mermaid_syntax = graph.draw_mermaid()
+with open('docs/workflow-diagram.mmd', 'w') as f:
+    f.write(mermaid_syntax)
+"
 ```
 
-Output:
-
-```mermaid
-graph TD
-    START --> initialize
-    initialize --> spawn_implementation
-    spawn_implementation --> verify
-    verify -->|retry| verify
-    verify -->|continue| manage_branches
-    manage_branches --> push_merge
-    push_merge --> final_report
-    final_report --> END
-```
+The Mermaid syntax is also available in `docs/workflow-diagram.mmd` for embedding in documentation.
 
 ## Debugging
 
@@ -327,56 +370,54 @@ for checkpoint in app.get_state_history(config):
     print(f"Jobs: {len(checkpoint.values['jobs'])}")
 ```
 
-## Comparison: Agent vs LangGraph
+## Why LangGraph Instead of Agent-Based Orchestration?
 
-| Feature | sprint-coordinator (agent) | LangGraph Executor |
-|---------|---------------------------|-------------------|
-| Execution Order | Prompt-based (non-deterministic) | State machine (deterministic) |
-| Resumability | None | Full (checkpoint-based) |
-| Debugging | Read files, guess state | Inspect state graph directly |
-| Verification Loops | Relies on agent following prompt | Guaranteed by conditional edges |
-| Parallelization | Described in prompt | True async parallelization |
-| State Tracking | File-based (fragile) | In-memory state (reliable) |
-| Visualization | None | Generate workflow diagrams |
-| Error Recovery | Undefined | Explicit error nodes |
+Originally, sprint execution was attempted using a `sprint-coordinator` agent with prompt-based orchestration. This proved unreliable for the execution phase due to:
 
-## When to Use Which?
+❌ Non-deterministic execution order
+❌ No built-in resumability
+❌ Fragile file-based state tracking
+❌ Difficult to debug when things go wrong
+❌ Verification loops not guaranteed
+❌ No way to inspect workflow state
 
-### Use Agent-Based (sprint-coordinator)
-- ✅ Simple sprints (1-3 jobs)
-- ✅ No complex error handling needed
-- ✅ Want to stay in Claude Code ecosystem
-- ✅ Prototyping/MVP
+**LangGraph solves all of these:**
 
-### Use LangGraph Executor
-- ✅ Complex sprints (4+ jobs)
-- ✅ Need reliability and resumability
-- ✅ Want true parallel execution
-- ✅ Need to debug/inspect state
-- ✅ Production use
+| Challenge | LangGraph Solution |
+|-----------|-------------------|
+| Execution reliability | State machine guarantees correct phase ordering |
+| Crash recovery | Checkpoint-based resumability |
+| Debugging | Direct state graph inspection |
+| Feedback loops | Guaranteed by conditional edges (max retries enforced) |
+| Parallelization | True async parallelization (not just "prompt says parallel") |
+| State tracking | In-memory state (TypedDict) flows through nodes |
+| Visualization | Generate workflow diagrams with get_graph().draw_mermaid_png() |
+| Error recovery | Explicit error nodes with non-blocking behavior |
 
-## Integration with setup-jobs
+**Result:** LangGraph is now the **core execution engine**, not an optional alternative.
 
-To use LangGraph executor, modify `commands/setup-jobs.md` Step 6:
+## Integration with /create-sprint
 
-**Before (Agent-based):**
-```
-Task: sprint-coordinator
-Input:
-  - Job specifications: tasks/*.md
-  - Sprint PRD: {prd_file}
-  - Worktrees: worktrees/feat-*/
-```
+`/create-sprint` is the handoff point from Claude Code commands to LangGraph:
 
-**After (LangGraph):**
-```
-mcp__langgraph-sprint-executor__execute_sprint(
-  project_name="{project}",
-  sprint_prd_path="{prd_file}",
-  todos_path="{todos_file}",
-  pool_size=3
-)
-```
+**What /create-sprint does:**
+1. Spawns parallel agents (PM, UX, Engineering) for PRD generation
+2. Synthesizes outputs into comprehensive Sprint PRD
+3. Generates phased todo list
+4. **Invokes LangGraph MCP server** with PRD + todos
+
+**What LangGraph does (after handoff):**
+1. Gap analysis iteration (validates architecture, max 3 retries)
+2. Job creation (code co-location analysis)
+3. Job validation (validates job specs, max 3 retries)
+4. Worktree setup (one per job)
+5. Parallel implementation (up to pool_size jobs)
+6. Verification loops (retry failed jobs up to 5 times each)
+7. Branch management (update from main, resolve conflicts)
+8. Push and merge (PR creation and auto-merge)
+9. Final report generation
+
+**Note:** `/setup-jobs` command is **deprecated** - LangGraph handles all of this automatically.
 
 ## Troubleshooting
 

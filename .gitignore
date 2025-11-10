@@ -34,3 +34,9 @@ Thumbs.db
 *.bak
 
 thoughts
+CLAUDE.md
+
+# Keep docs directory but ignore generated diagrams during development
+# Commit the final diagrams when ready
+# docs/*.png
+# docs/*.mmd

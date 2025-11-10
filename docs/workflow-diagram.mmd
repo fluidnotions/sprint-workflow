@@ -1,0 +1,49 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	pm_planning(pm_planning)
+	ux_planning(ux_planning)
+	engineering_planning(engineering_planning)
+	synthesize_planning(synthesize_planning)
+	gap_analysis(gap_analysis)
+	update_planning_from_feedback(update_planning_from_feedback)
+	generate_sprint_prd(generate_sprint_prd)
+	create_jobs(create_jobs)
+	validate_jobs(validate_jobs)
+	update_jobs_from_feedback(update_jobs_from_feedback)
+	setup_git_worktrees(setup_git_worktrees)
+	parallel_implementation(parallel_implementation)
+	verification_loop(verification_loop)
+	manage_branches(manage_branches)
+	push_and_merge(push_and_merge)
+	generate_final_report(generate_final_report)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> engineering_planning;
+	__start__ --> pm_planning;
+	__start__ --> ux_planning;
+	create_jobs --> validate_jobs;
+	engineering_planning --> synthesize_planning;
+	gap_analysis -. &nbsp;approved&nbsp; .-> generate_sprint_prd;
+	gap_analysis -. &nbsp;apply_feedback&nbsp; .-> update_planning_from_feedback;
+	generate_sprint_prd --> create_jobs;
+	manage_branches --> push_and_merge;
+	parallel_implementation --> verification_loop;
+	pm_planning --> synthesize_planning;
+	push_and_merge --> generate_final_report;
+	setup_git_worktrees --> parallel_implementation;
+	synthesize_planning --> gap_analysis;
+	update_jobs_from_feedback --> validate_jobs;
+	update_planning_from_feedback --> pm_planning;
+	ux_planning --> synthesize_planning;
+	validate_jobs -. &nbsp;approved&nbsp; .-> setup_git_worktrees;
+	validate_jobs -. &nbsp;apply_feedback&nbsp; .-> update_jobs_from_feedback;
+	verification_loop -. &nbsp;continue&nbsp; .-> manage_branches;
+	generate_final_report --> __end__;
+	verification_loop -. &nbsp;retry&nbsp; .-> verification_loop;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

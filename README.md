@@ -6,16 +6,31 @@ Sprint planning, organization, tracking, and retrospectives with parallel develo
 
 This plugin does **ONE thing**: manages sprints from planning to completion.
 
-**What it does:**
-- Creates comprehensive sprint plans with multi-agent PRD
-- Organizes todos into code-colocated jobs
-- Sets up git worktrees for parallel development
-- Tracks sprint progress in real-time
-- Generates retrospectives with metrics
-- **Optional**: Deterministic sprint execution with LangGraph state machine
+**Architecture:**
+
+**Phase 1: Planning (Claude Code Commands)**
+- `/plan-sprint` - Interactive planning conversation → Sprint Brief
+- `/create-sprint` - Multi-agent PRD generation → PRD + todos
+
+**Phase 2: Execution (LangGraph State Machine)**
+- Takes PRD + todos as input
+- Handles gap analysis iteration, job creation, worktree setup, implementation, verification, and merging
+- Deterministic, resumable execution via state machine
+- **Why LangGraph?** The execution phase is too complex for prompt-based orchestration to handle reliably
+
+### Workflow Diagram
+
+The complete LangGraph state machine workflow:
+
+![Sprint Workflow Diagram](docs/workflow-diagram.png)
+
+**Key Features:**
+- **Parallel planning** - PM, UX, Engineering agents run simultaneously from START
+- **Feedback loops** - Gap analysis and job validation with max 3 retries each
+- **Verification loop** - Retry failed jobs until all verified or failed
+- **Conditional routing** - Dotted lines show decision points (approved/apply_feedback/retry)
 
 **What it does NOT do:**
-- Implementation (use `implementation-workflow` plugin)
 - Codebase research (use `codebase-research` plugin)
 - Debugging or general dev support
 
@@ -36,20 +51,19 @@ If you have this repo cloned locally, you can install via Claude Code local mark
 
 ### Setup
 
-1. **Basic setup** (required):
+1. **Install LangGraph dependencies** (required for sprint execution):
    ```bash
-   # The plugin will auto-create necessary directories via session hook
-   # No additional setup needed for basic functionality
-   ```
-
-2. **LangGraph integration** (optional):
-   ```bash
-   # For deterministic, resumable sprint execution
    bash scripts/install_langgraph.sh
    export ANTHROPIC_API_KEY="your-api-key"
    ```
 
-   See [LANGGRAPH.md](LANGGRAPH.md) for details on LangGraph-based execution.
+   See [LANGGRAPH.md](LANGGRAPH.md) for details on the LangGraph execution engine.
+
+2. **Directory setup** (automatic):
+   ```bash
+   # The plugin auto-creates necessary directories via session hook
+   # No manual setup needed
+   ```
 
 ## Commands (5)
 
@@ -77,7 +91,7 @@ Conversational sprint planning to create a Sprint Brief.
 
 ### `/create-sprint` - Generate Sprint PRD
 
-Creates comprehensive Sprint PRD with multi-agent analysis, todos, and architecture validation.
+Creates comprehensive Sprint PRD with multi-agent analysis and todos. This is the **handoff point** from Claude Code to LangGraph.
 
 **Usage:**
 ```bash
@@ -88,45 +102,40 @@ Creates comprehensive Sprint PRD with multi-agent analysis, todos, and architect
 1. Spawns parallel agents (PM, UX, Engineering) for comprehensive PRD
 2. Generates Sprint PRD in `thoughts/sprint-plans/{project_name}/`
 3. Creates phased todo list
-4. Validates architecture
-5. Sets up directory structure
+4. **Hands off to LangGraph** with PRD + todos
 
 **Output:**
 - Sprint PRD: `thoughts/sprint-plans/{project_name}/{datetime}_prd_{name}.md`
 - Todo list: `{datetime}_todos.md`
-- Architecture validation report
 
-**Next:** Run `/setup-jobs`
+**Next:** LangGraph automatically executes the sprint (gap analysis → jobs → implementation → merge)
 
 ---
 
-### `/setup-jobs` - Organize & Setup Worktrees
+### `/setup-jobs` - (DEPRECATED - LangGraph handles this)
 
-Transforms todos into code-colocated jobs with git worktrees.
+**Note:** This command is deprecated. LangGraph automatically handles job creation, worktree setup, and execution after `/create-sprint`.
 
-**Usage:**
+If you need to manually trigger LangGraph execution:
+
 ```bash
-/setup-jobs                    # Uses most recent todos
-/setup-jobs sprint_todos.md    # Specific file
-/setup-jobs --pool=5           # Custom pool size
+# Use the MCP tool directly
+mcp__langgraph-sprint-executor__execute_sprint(
+  project_name="my-project",
+  sprint_prd_path="thoughts/sprint-plans/my-project/*_prd_*.md",
+  todos_path="*_todos.md",
+  pool_size=3
+)
 ```
 
-**What it does:**
-1. Analyzes todos for code co-location
-2. Groups related todos into jobs
-3. Creates job specs in `tasks/`
-4. Sets up git worktrees
-5. Validates architecture per job
-
-**Example:**
-```
-10 todos → 3 jobs:
-- auth-system (5 todos) → worktrees/feat-auth-system
-- api-endpoints (3 todos) → worktrees/feat-api-endpoints
-- frontend-ui (2 todos) → worktrees/feat-frontend-ui
-```
-
-**Next:** Implement each job (see `implementation-workflow` plugin)
+LangGraph handles:
+1. Gap analysis iteration (architecture validation)
+2. Code co-location analysis
+3. Job creation and validation
+4. Git worktree setup
+5. Parallel implementation
+6. Verification loops
+7. Branch management and merging
 
 ---
 
@@ -180,13 +189,12 @@ Generates comprehensive retrospective.
 - `senior-engineer` - Technical architecture
 - `gap-analyzer` - Architecture validation
 
-**Organization Agent:**
-- `job-creator` (Sonnet) - Code co-location analysis
+**Execution (LangGraph State Machine):**
+- Gap analysis, job creation, implementation, verification handled by LangGraph nodes
+- Uses `job-creator` agent (Sonnet) for code co-location analysis
+- Deterministic execution with feedback loops and retry logic
 
-**Orchestration Agent:**
-- `sprint-coordinator` (Opus) - Parallel implementation, verification loops, multi-repo management
-
-All agents auto-invoked by commands.
+Planning agents auto-invoked by commands. Execution handled by LangGraph.
 
 ---
 
@@ -203,36 +211,35 @@ All agents auto-invoked by commands.
 ```
 Interactive planning conversation → creates Sprint Brief.
 
-### 3. Create Sprint PRD
+### 3. Create Sprint PRD & Execute
 ```bash
 /create-sprint "Auth Sprint"
 ```
-Multi-agent PRD generation → creates Sprint PRD and todos.
+Multi-agent PRD generation → creates Sprint PRD and todos → **hands off to LangGraph**.
 
-### 4. Setup Jobs & Launch Sprint
+**LangGraph automatically executes:**
+- Gap analysis iteration (architecture validation with feedback loops)
+- Code co-location analysis and job creation
+- Git worktree setup (one per job)
+- Parallel implementation (up to pool_size jobs simultaneously)
+- Verification loops (retry up to 5 times per job)
+- Branch management and conflict resolution
+- PR creation and auto-merge
+- Final execution report
+
+**Non-blocking errors:** Failed jobs generate error reports but don't stop the sprint.
+
+### 4. Monitor (During Execution)
 ```bash
-/setup-jobs
+/sprint-status  # Real-time dashboard
 ```
-Creates job specs + worktrees + launches sprint-coordinator.
 
-**The sprint-coordinator autonomously:**
-- Spawns implementation agents (parallel, one per job)
-- Runs verification feedback loops (automatic)
-- Manages branches across multiple repos
-- Auto-merges PRs when tests pass
-- Logs errors but continues sprint (non-blocking)
+Check `sprint_status.md` for live updates and `sprint_errors_*.md` for failures.
 
-### 5. Monitor (During Autonomous Execution)
+### 5. Review & Retrospective (After Completion)
 ```bash
-/sprint-status  # Real-time dashboard (updates every 60s)
-```
-
-Check `sprint_errors_*.md` for any job failures (sprint continues anyway).
-
-### 6. Review & Retrospective (After Sprint Completes)
-```bash
-# Sprint-coordinator generates final report automatically
-# Review it and any error reports
+# LangGraph generates final report automatically
+# Review sprint_report_*.md and any error reports
 
 /sprint-retrospective  # Document learnings
 ```
@@ -308,7 +315,7 @@ Each job gets isolated directory:
 - Claude Code >=1.0.0
 - Git >=2.0.0 with worktree support
 - Bash
-- Python 3.9+ (for LangGraph integration, optional)
+- Python 3.9+ with LangGraph dependencies (required for sprint execution)
 
 ---
 
