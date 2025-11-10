@@ -22,17 +22,15 @@ LangGraph state machines provide:
 ## How It Works
 
 ```bash
-# 1. Define your sprint
-/create-sprint "User Authentication"
+# 1. Plan your sprint (creates Sprint Brief)
+/plan-sprint
 
-# 2. LangGraph executes everything:
-#    ✓ Parallel planning (PM, UX, Engineering perspectives)
-#    ✓ Architecture gap analysis with feedback loops
-#    ✓ Code co-location analysis and job creation
-#    ✓ Git worktree setup for parallel development
-#    ✓ Concurrent job implementation
-#    ✓ Verification with automatic retries
-#    ✓ Branch management and PR creation
+# 2. Create Sprint PRD and launch execution
+/create-sprint "User Authentication"
+#    ✓ Multi-agent PRD generation (PM, UX, Engineering)
+#    ✓ Architecture gap analysis
+#    ✓ Todo generation
+#    → Hands off to execution engine
 
 # 3. Monitor progress
 /sprint-status
@@ -49,7 +47,8 @@ bash scripts/install_langgraph.sh
 export ANTHROPIC_API_KEY="your-api-key"
 
 # Run your first sprint
-/create-sprint "API Rate Limiting"
+/plan-sprint  # Interactive planning to create Sprint Brief
+/create-sprint "API Rate Limiting"  # Generate PRD and execute
 ```
 
 ## Key Features
@@ -65,20 +64,23 @@ export ANTHROPIC_API_KEY="your-api-key"
 
 ## Commands
 
-- `/plan-sprint` - Interactive planning session (optional pre-planning)
-- `/create-sprint` - Launch sprint execution with LangGraph
+- `/plan-sprint` - Interactive planning session (REQUIRED - creates Sprint Brief)
+- `/create-sprint` - Generate Sprint PRD from brief, then launch execution
 - `/sprint-status` - Real-time progress dashboard
 - `/sprint-retrospective` - Post-sprint metrics and analysis
 
 ## Architecture
 
-The workflow is a single LangGraph state machine that handles the entire sprint lifecycle:
+The workflow has two phases:
 
-1. **Planning** - Parallel PM/UX/Engineering analysis
-2. **Synthesis** - Combines perspectives into unified plan
-3. **Gap Analysis** - Validates architecture (max 3 retry loops)
-4. **Job Creation** - Analyzes code co-location and creates job specs
-5. **Validation** - Ensures job specifications are sound (max 3 retry loops)
+### Phase 1: Planning (Claude Code Commands)
+1. **Sprint Brief** - `/plan-sprint` creates initial brief through conversation
+2. **PRD Generation** - `/create-sprint` invokes PM/UX/Engineering agents
+3. **Gap Analysis** - Validates architecture completeness
+4. **Todo Generation** - Creates task checklist
+
+### Phase 2: Execution (Future LangGraph Implementation)
+5. **Job Creation** - Analyzes code co-location and creates job specs
 6. **Implementation** - Executes jobs in parallel worktrees
 7. **Verification** - Tests and validates each job (max 5 retries per job)
 8. **Integration** - Manages branches, creates PRs, and merges

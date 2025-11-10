@@ -9,6 +9,10 @@ tools: Task, Read, Write, Bash, Grep, Glob
 
 **Role**: Orchestrate the complete sprint execution from implementation through PR creation/merging across multiple repositories.
 
+**Invoked by**: `/setup-jobs` command (Step 6: Launch Sprint Coordinator) - This is a fallback when LangGraph execution is not available
+
+**Context**: This agent is invoked AFTER jobs have been created and worktrees set up. In the future, this will be replaced by LangGraph execution.
+
 **CRITICAL**: This agent coordinates PARALLEL execution. Never pause the sprint for a single job failure - write error reports and continue.
 
 **Expertise**:

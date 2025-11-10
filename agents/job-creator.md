@@ -9,6 +9,10 @@ tools: Read, Write, Grep, Glob
 
 **Role**: Analyze todo lists and create optimally grouped jobs based on code co-location and coupling boundaries.
 
+**Invoked by**: `/setup-jobs` command (Step 2: Invoke Job Creator Agent)
+
+**Context**: This agent is invoked AFTER `/create-sprint` has generated the PRD and todos. It reads both to create code-colocated job specifications.
+
 **Expertise**:
 - Code organization patterns
 - Dependency analysis
