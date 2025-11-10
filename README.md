@@ -1,10 +1,6 @@
 # Sprint Workflow Plugin
 
-Sprint planning, organization, tracking, and retrospectives with parallel development via git worktrees.
-
-## Single Responsibility
-
-This plugin does **ONE thing**: manages sprints from planning to completion.
+Manages sprints from planning to completion with parallel development via git worktrees.
 
 **Architecture:**
 
@@ -30,42 +26,17 @@ The complete LangGraph state machine workflow:
 - **Verification loop** - Retry failed jobs until all verified or failed
 - **Conditional routing** - Dotted lines show decision points (approved/apply_feedback/retry)
 
-**What it does NOT do:**
-- Codebase research (use `codebase-research` plugin)
-- Debugging or general dev support
-
 ## Installation
 
-### From GitHub
-
+**Install LangGraph dependencies:**
 ```bash
-cd ~/.claude/plugins
-git clone https://github.com/fluidnotions/sprint-workflow.git
-cd sprint-workflow
-# Follow setup instructions below
+bash scripts/install_langgraph.sh
+export ANTHROPIC_API_KEY="your-api-key"
 ```
 
-### From Local Dev
+See [LANGGRAPH.md](LANGGRAPH.md) for details on the LangGraph execution engine.
 
-If you have this repo cloned locally, you can install via Claude Code local marketplace.
-
-### Setup
-
-1. **Install LangGraph dependencies** (required for sprint execution):
-   ```bash
-   bash scripts/install_langgraph.sh
-   export ANTHROPIC_API_KEY="your-api-key"
-   ```
-
-   See [LANGGRAPH.md](LANGGRAPH.md) for details on the LangGraph execution engine.
-
-2. **Directory setup** (automatic):
-   ```bash
-   # The plugin auto-creates necessary directories via session hook
-   # No manual setup needed
-   ```
-
-## Commands (5)
+## Commands
 
 ### `/plan-sprint` - Interactive Sprint Planning
 
@@ -109,33 +80,6 @@ Creates comprehensive Sprint PRD with multi-agent analysis and todos. This is th
 - Todo list: `{datetime}_todos.md`
 
 **Next:** LangGraph automatically executes the sprint (gap analysis → jobs → implementation → merge)
-
----
-
-### `/setup-jobs` - (DEPRECATED - LangGraph handles this)
-
-**Note:** This command is deprecated. LangGraph automatically handles job creation, worktree setup, and execution after `/create-sprint`.
-
-If you need to manually trigger LangGraph execution:
-
-```bash
-# Use the MCP tool directly
-mcp__langgraph-sprint-executor__execute_sprint(
-  project_name="my-project",
-  sprint_prd_path="thoughts/sprint-plans/my-project/*_prd_*.md",
-  todos_path="*_todos.md",
-  pool_size=3
-)
-```
-
-LangGraph handles:
-1. Gap analysis iteration (architecture validation)
-2. Code co-location analysis
-3. Job creation and validation
-4. Git worktree setup
-5. Parallel implementation
-6. Verification loops
-7. Branch management and merging
 
 ---
 
@@ -200,18 +144,12 @@ Planning agents auto-invoked by commands. Execution handled by LangGraph.
 
 ## Complete Sprint Workflow
 
-### 1. (Optional) Research First
+### 1. Plan Sprint
 ```bash
-/research_codebase "authentication"  # codebase-research plugin
+/plan-sprint  # Optional: Interactive planning conversation → Sprint Brief
 ```
 
-### 2. (Optional) Plan Sprint
-```bash
-/plan-sprint
-```
-Interactive planning conversation → creates Sprint Brief.
-
-### 3. Create Sprint PRD & Execute
+### 2. Create Sprint PRD & Execute
 ```bash
 /create-sprint "Auth Sprint"
 ```
@@ -229,14 +167,14 @@ Multi-agent PRD generation → creates Sprint PRD and todos → **hands off to L
 
 **Non-blocking errors:** Failed jobs generate error reports but don't stop the sprint.
 
-### 4. Monitor (During Execution)
+### 3. Monitor (During Execution)
 ```bash
 /sprint-status  # Real-time dashboard
 ```
 
 Check `sprint_status.md` for live updates and `sprint_errors_*.md` for failures.
 
-### 5. Review & Retrospective (After Completion)
+### 4. Review & Retrospective (After Completion)
 ```bash
 # LangGraph generates final report automatically
 # Review sprint_report_*.md and any error reports
@@ -248,15 +186,10 @@ Check `sprint_status.md` for live updates and `sprint_errors_*.md` for failures.
 
 ## Directory Structure
 
+The plugin creates the following directories during sprint execution:
+
 ```
 your-project/
-├── thoughts/
-│   ├── sprint-plans/
-│   │   └── your-project/     # All sprint artifacts (by project)
-│   │       ├── {datetime}_brief_{name}.md   # Sprint Brief (from /plan-sprint)
-│   │       └── {datetime}_prd_{name}.md     # Sprint PRD (from /create-sprint)
-│   └── shared/
-│       └── research/          # Research (from codebase-research plugin)
 ├── tasks/                     # Job specifications
 ├── worktrees/                 # Git worktrees (one per job)
 │   ├── feat-auth/
@@ -267,7 +200,7 @@ your-project/
 └── *_sprint_retro.md         # Retrospectives
 ```
 
-Auto-created by session hook with project-specific subdirectories.
+**Note:** Sprint planning artifacts (PRDs, briefs) are stored in a shared directory structure managed by a separate local plugin. This allows sprint documentation to be shared across multiple projects.
 
 ---
 
@@ -294,28 +227,9 @@ Each job gets isolated directory:
 
 ---
 
-## Best Practices
-
-1. **Right-size sprints:** 3-10 jobs, 2-5 todos/job, 20-40 story points
-2. **Meaningful names:** "oauth-integration" not "task-1"
-3. **Monitor regularly:** `/sprint-status` daily
-4. **Always retrospective:** Even failed sprints have learnings
-
----
-
-## Recommended Companion Plugins
-
-- **implementation-workflow**: For implementing jobs
-- **codebase-research**: For pre-sprint research
-
----
-
 ## Requirements
 
-- Claude Code >=1.0.0
-- Git >=2.0.0 with worktree support
-- Bash
-- Python 3.9+ with LangGraph dependencies (required for sprint execution)
+- Python 3.9+ with LangGraph dependencies
 
 ---
 
@@ -341,15 +255,5 @@ sprint-workflow/
 
 ## Additional Documentation
 
-- **[LANGGRAPH.md](LANGGRAPH.md)** - LangGraph integration guide for deterministic sprint execution
-- **[2025-11-09_langgraph_migration_todos.md](2025-11-09_langgraph_migration_todos.md)** - Migration notes and implementation details
-
----
-
-## License
-
-MIT License
-
----
-
-**Start sprinting:** `/create-sprint "Your Sprint Name"`
+- **[LANGGRAPH.md](LANGGRAPH.md)** - LangGraph execution engine details
+- **[docs/DIAGRAMS.md](docs/DIAGRAMS.md)** - Workflow diagram documentation

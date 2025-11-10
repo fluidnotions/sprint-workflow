@@ -325,29 +325,13 @@ The complete workflow graph is available in the repository:
 
 ![Sprint Workflow Diagram](docs/workflow-diagram.png)
 
-You can regenerate the diagram with:
+Regenerate the diagram after modifying the workflow:
 
 ```bash
-python3 -c "
-from graph.workflow import build_workflow
-
-workflow = build_workflow()
-app = workflow.compile()
-graph = app.get_graph()
-
-# Generate PNG
-mermaid_png = graph.draw_mermaid_png()
-with open('docs/workflow-diagram.png', 'wb') as f:
-    f.write(mermaid_png)
-
-# Generate Mermaid syntax
-mermaid_syntax = graph.draw_mermaid()
-with open('docs/workflow-diagram.mmd', 'w') as f:
-    f.write(mermaid_syntax)
-"
+bash scripts/generate_diagram.sh
 ```
 
-The Mermaid syntax is also available in `docs/workflow-diagram.mmd` for embedding in documentation.
+See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for more details.
 
 ## Debugging
 
